@@ -1,0 +1,10 @@
+services:
+  bourbon-alerts:
+    build: .
+    container_name: bourbon-alerts
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data
+      - ./config.yaml:/app/config.yaml:ro
+    environment:
+      - TZ=America/New_York

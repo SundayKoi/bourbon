@@ -1,0 +1,26 @@
+[project]
+name = "bourbon-alerts"
+version = "0.1.0"
+description = "Automated bourbon auction/sale notification system"
+requires-python = ">=3.11"
+dependencies = [
+    "httpx>=0.27",
+    "beautifulsoup4>=4.12",
+    "lxml>=5.0",
+    "pydantic>=2.0",
+    "pyyaml>=6.0",
+    "apscheduler>=3.10,<4",
+    "structlog>=24.0",
+    "curl_cffi>=0.7",
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-httpx>=0.30",
+]
+
+[project.scripts]
+bourbon-alerts = "src.main:main"

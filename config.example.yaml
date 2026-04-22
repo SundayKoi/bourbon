@@ -1,0 +1,57 @@
+database:
+  path: "./data/bourbon.db"
+
+scrapers:
+  virginia_abc:
+    enabled: true
+    interval_minutes: 30
+  reddit:
+    enabled: false
+    subreddits: ["bourbon", "dcwhisky"]
+    interval_minutes: 30
+  breaking_bourbon:
+    enabled: true
+    interval_minutes: 360
+  unicorn_auctions:
+    enabled: true
+    interval_minutes: 15
+  whisky_auctioneer:
+    enabled: false
+    interval_minutes: 60
+
+filters:
+  notify_all: false
+  keywords:
+    - "Weller 12"
+    - "Weller Full Proof"
+    - "E.H. Taylor"
+    - "Blanton's"
+    - "Stagg Jr"
+    - "Eagle Rare"
+    - "Elijah Craig Barrel Proof"
+    - "Buffalo Trace Antique Collection"
+    - "Henry McKenna 10"
+    - "Old Fitzgerald Bottled in Bond"
+    - "lottery"
+    - "allocated"
+  max_price: 200
+  min_price: null
+
+notifications:
+  ntfy:
+    enabled: true
+    topic: "bourbon-alerts-CHANGEME"
+    server: "https://ntfy.sh"
+    priority: "high"
+  email:
+    enabled: false
+    smtp_host: ""
+    smtp_port: 587
+    smtp_user: ""
+    smtp_pass: ""
+    from_addr: ""
+    to_addr: ""
+
+admin:
+  ntfy_topic: "bourbon-admin-CHANGEME"
+  notify_on_error_count: 3
