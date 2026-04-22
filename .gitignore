@@ -27,6 +27,7 @@ data/
 dist/
 build/
 *.egg
+*.tsbuildinfo
 
 # Node
 node_modules/
