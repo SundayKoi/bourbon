@@ -67,12 +67,28 @@ query SearchLotsV2($input: SearchLotInput!) {
 """
 
 
+WHISKEY_TITLE_TERMS = (
+    "bourbon", "rye", "whiskey", "whisky", "single malt", "scotch",
+    "distillery", "distilling", "proof",
+)
+
+
+def _is_whiskey(title: str) -> bool:
+    t = title.lower()
+    return any(term in t for term in WHISKEY_TITLE_TERMS)
+
+
 def _parse_lot(lot: dict) -> Listing | None:
-    """Parse a GraphQL lot result into a Listing. Skips ended/closed lots."""
+    """Parse a GraphQL lot result into a Listing. Skips ended/closed/non-whiskey lots."""
     lot_uuid = lot.get("uuid", "")
     auction_uuid = lot.get("auctionUuid", "")
     title = lot.get("title", "")
     if not title or not lot_uuid:
+        return None
+
+    # Filter out wine and other non-whiskey lots — Unicorn auctions include
+    # wine, tequila, etc. alongside bourbon
+    if not _is_whiskey(title):
         return None
 
     # Skip lots that aren't actively biddable
