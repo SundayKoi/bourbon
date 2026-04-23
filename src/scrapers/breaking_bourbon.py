@@ -108,6 +108,21 @@ class BreakingBourbonScraper(AbstractScraper):
         date_el = item.select_one("div.text-block-60")
         date_text = date_el.get_text(strip=True) if date_el else ""
 
+        # Image — site uses background-image on a div, not <img>
+        image_url = None
+        bg_el = item.select_one("[style*='background-image']")
+        if bg_el:
+            style = bg_el.get("style", "")
+            m = re.search(r'background-image:\s*url\(["\']?([^)"\']+)', style)
+            if m:
+                image_url = m.group(1)
+        if not image_url:
+            img_el = item.select_one("img")
+            if img_el:
+                image_url = img_el.get("src") or img_el.get("data-src")
+        if image_url and not image_url.startswith("http"):
+            image_url = f"{BASE_URL}{image_url}"
+
         # Generate a stable external ID from the URL slug
         slug = url.rstrip("/").split("/")[-1]
         external_id = slug or hashlib.md5(url.encode()).hexdigest()
@@ -117,4 +132,5 @@ class BreakingBourbonScraper(AbstractScraper):
             external_id=external_id,
             title=title,
             url=url,
+            image_url=image_url,
         )

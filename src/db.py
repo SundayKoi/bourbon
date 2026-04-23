@@ -57,13 +57,17 @@ def mark_seen(
     listing: Listing,
     watchlist_match: bool,
 ) -> None:
-    """Insert a listing into seen_listings. Ignores duplicates."""
+    """Insert a listing into seen_listings, or backfill image/ends_at if already present."""
     now = datetime.now(timezone.utc).isoformat()
     conn.execute(
-        """INSERT OR IGNORE INTO seen_listings
+        """INSERT INTO seen_listings
            (source, external_id, title, url, price, discovered_at, notified_at,
             watchlist_match, image_url, ends_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+           ON CONFLICT(source, external_id) DO UPDATE SET
+             image_url = COALESCE(seen_listings.image_url, excluded.image_url),
+             ends_at = COALESCE(seen_listings.ends_at, excluded.ends_at),
+             price = COALESCE(excluded.price, seen_listings.price)""",
         (
             listing.source,
             listing.external_id,

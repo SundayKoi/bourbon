@@ -65,6 +65,39 @@ def seed_watchlist_from_config(conn, config: AppConfig) -> None:
     logger.info("watchlist.seeded", count=len(config.filters.keywords))
 
 
+def run_backfill(config: AppConfig) -> None:
+    """Re-scrape all sources and upsert image_url/ends_at on existing records.
+
+    Unlike run_scrape_cycle, this skips dedup and applies mark_seen to every
+    scraped listing so missing fields on existing rows get filled in.
+    No notifications are sent.
+    """
+    conn = get_connection(config.database.path)
+    run_migrations(conn)
+    seed_watchlist_from_config(conn, config)
+
+    keywords = get_watchlist_keywords(conn)
+    scrapers = get_enabled_scrapers(config)
+
+    for scraper in scrapers:
+        source = scraper.source_name
+        try:
+            logger.info("backfill.scraping", source=source)
+            raw_listings = scraper.scrape()
+            result = apply_filters(raw_listings, config.filters, keywords=keywords)
+
+            for listing in result.instant:
+                mark_seen(conn, listing, watchlist_match=True)
+            for listing in result.digest:
+                mark_seen(conn, listing, watchlist_match=False)
+
+            logger.info("backfill.done", source=source, count=len(raw_listings))
+        except Exception as e:
+            logger.error("backfill.scraper_error", source=source, error=str(e))
+
+    conn.close()
+
+
 def run_scrape_cycle(config: AppConfig, silent: bool = False) -> None:
     """Run one full scrape → dedup → filter → notify cycle.
 
@@ -155,6 +188,11 @@ def main() -> None:
         help="Seed the database with current listings without sending notifications",
     )
     parser.add_argument(
+        "--backfill",
+        action="store_true",
+        help="Re-scrape and backfill image_url/ends_at on existing records, no notifications",
+    )
+    parser.add_argument(
         "--config",
         default="config.yaml",
         help="Path to config file (default: config.yaml)",
@@ -176,6 +214,12 @@ def main() -> None:
         logger.info("seed.starting", mode="seed")
         run_scrape_cycle(config, silent=True)
         logger.info("seed.complete")
+        return
+
+    if args.backfill:
+        logger.info("backfill.starting")
+        run_backfill(config)
+        logger.info("backfill.complete")
         return
 
     if args.once:
