@@ -65,11 +65,18 @@ def health() -> dict:
 def listings(
     source: str | None = None,
     watchlist_only: bool = False,
+    min_price: float | None = None,
+    max_price: float | None = None,
     limit: int = 500,
     conn=Depends(get_db),
 ) -> list[dict]:
     return get_active_listings(
-        conn, source=source, watchlist_only=watchlist_only, limit=limit
+        conn,
+        source=source,
+        watchlist_only=watchlist_only,
+        min_price=min_price,
+        max_price=max_price,
+        limit=limit,
     )
 
 

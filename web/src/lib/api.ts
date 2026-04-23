@@ -33,10 +33,21 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  listings: (params: { source?: string; watchlist_only?: boolean } = {}) => {
+  listings: (
+    params: {
+      source?: string;
+      watchlist_only?: boolean;
+      min_price?: number;
+      max_price?: number;
+    } = {}
+  ) => {
     const qs = new URLSearchParams();
     if (params.source) qs.set("source", params.source);
     if (params.watchlist_only) qs.set("watchlist_only", "true");
+    if (params.min_price !== undefined)
+      qs.set("min_price", String(params.min_price));
+    if (params.max_price !== undefined)
+      qs.set("max_price", String(params.max_price));
     qs.set("limit", "500");
     return request<Listing[]>(`/listings?${qs}`);
   },

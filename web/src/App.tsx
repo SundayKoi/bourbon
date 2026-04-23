@@ -7,18 +7,25 @@ import { Watchlist } from "./components/Watchlist";
 export default function App() {
   const [source, setSource] = useState<string>("");
   const [watchlistOnly, setWatchlistOnly] = useState(false);
+  const [minPrice, setMinPrice] = useState<string>("");
+  const [maxPrice, setMaxPrice] = useState<string>("");
 
   const { data: sources = [] } = useQuery({
     queryKey: ["sources"],
     queryFn: api.sources,
   });
 
+  const minPriceNum = minPrice === "" ? undefined : Number(minPrice);
+  const maxPriceNum = maxPrice === "" ? undefined : Number(maxPrice);
+
   const { data: listings = [], isLoading } = useQuery({
-    queryKey: ["listings", source, watchlistOnly],
+    queryKey: ["listings", source, watchlistOnly, minPriceNum, maxPriceNum],
     queryFn: () =>
       api.listings({
         source: source || undefined,
         watchlist_only: watchlistOnly,
+        min_price: minPriceNum,
+        max_price: maxPriceNum,
       }),
   });
 
@@ -54,7 +61,7 @@ export default function App() {
             <select
               value={source}
               onChange={(e) => setSource(e.target.value)}
-              className="w-full px-2 py-1.5 border border-bourbon-100 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-bourbon-500"
+              className="w-full px-2 py-1.5 border border-bourbon-100 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-bourbon-500 mb-3"
             >
               <option value="">All sources</option>
               {sources.map((s) => (
@@ -63,6 +70,52 @@ export default function App() {
                 </option>
               ))}
             </select>
+
+            <label className="block text-sm text-bourbon-900 mb-1">Price</label>
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-bourbon-700 text-sm">
+                  $
+                </span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step="1"
+                  value={minPrice}
+                  onChange={(e) => setMinPrice(e.target.value)}
+                  placeholder="Min"
+                  className="w-full pl-5 pr-2 py-1.5 border border-bourbon-100 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-bourbon-500"
+                />
+              </div>
+              <span className="text-bourbon-700 text-sm">–</span>
+              <div className="relative flex-1">
+                <span className="absolute left-2 top-1/2 -translate-y-1/2 text-bourbon-700 text-sm">
+                  $
+                </span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  step="1"
+                  value={maxPrice}
+                  onChange={(e) => setMaxPrice(e.target.value)}
+                  placeholder="Max"
+                  className="w-full pl-5 pr-2 py-1.5 border border-bourbon-100 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-bourbon-500"
+                />
+              </div>
+            </div>
+            {(minPrice || maxPrice) && (
+              <button
+                onClick={() => {
+                  setMinPrice("");
+                  setMaxPrice("");
+                }}
+                className="mt-2 text-xs text-bourbon-700 hover:text-bourbon-900 underline"
+              >
+                Clear price
+              </button>
+            )}
           </div>
 
           <Watchlist />

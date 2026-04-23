@@ -138,6 +138,8 @@ def get_active_listings(
     conn: sqlite3.Connection,
     source: str | None = None,
     watchlist_only: bool = False,
+    min_price: float | None = None,
+    max_price: float | None = None,
     limit: int = 500,
 ) -> list[dict]:
     """Get listings that haven't expired (ends_at in future or null), newest first."""
@@ -151,6 +153,14 @@ def get_active_listings(
 
     if watchlist_only:
         where.append("watchlist_match = 1")
+
+    if min_price is not None:
+        where.append("price >= ?")
+        params.append(min_price)
+
+    if max_price is not None:
+        where.append("price <= ?")
+        params.append(max_price)
 
     query = f"""
         SELECT id, source, external_id, title, url, price, image_url,
