@@ -12,7 +12,10 @@ MIGRATIONS_DIR = Path(__file__).resolve().parent.parent / "migrations"
 def get_connection(db_path: str) -> sqlite3.Connection:
     path = Path(db_path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(path))
+    # check_same_thread=False lets FastAPI open/close the connection across
+    # threads within a single request. Each request gets its own connection,
+    # so there's no cross-request sharing.
+    conn = sqlite3.connect(str(path), check_same_thread=False)
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
     return conn
